@@ -1,0 +1,7 @@
+#!/bin/bash
+# Driver installation and other artifact installation script
+mkdir -p /opt/tableau/tableau_driver/jdbc 
+cp /docker/customer-files/postgresql-42.3.3.jar /opt/tableau/tableau_driver/jdbc/postgresql-42.3.3.jar &&
+yum install -y /docker/customer-files/mysql-connector-odbc-8.0.26-1.el7.x86_64.rpm && 
+yum install -y /docker/customer-files/simbaspark-2.6.26.1045-1.x86_64.rpm
+# Driver installation and other artifact installation script
