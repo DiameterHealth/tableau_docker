@@ -45,4 +45,6 @@ cd ..
 
 ./build-image --accepteula -i tableau-server-2022-3-1.x86_64.rpm -e env.txt
 
+sleep 10
+
 docker images ls
