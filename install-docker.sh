@@ -1,21 +1,21 @@
 #!/bin/bash
 
 # Update package index
-yum update
+sudo yum update
 
 # Install required packages
-yum install -y yum-utils device-mapper-persistent-data lvm2
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
 
 # Add Docker's official GPG key
-yum-config-manager \
+sudo yum-config-manager \
     --add-repo \
     https://download.docker.com/linux/centos/docker-ce.repo
 
 # Install Docker CE
-yum install docker-ce
+sudo yum install docker-ce
 
 # Start Docker
-systemctl start docker
+sudo systemctl start docker
 
 sleep 5
 
