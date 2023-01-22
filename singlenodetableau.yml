@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tableau-server
+  labels:
+    app: tableau-server
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: tableau-server
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configfile
+data:
+  config.json: |-
+    {
+      "configEntities": {
+        "identityStore": {
+          "_type": "identityStoreType",
+          "type": "local"
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: datadir
+  labels:
+    app: tableau-server
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 150Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tableau-server
+  labels:
+    app: tableau-server
+spec:
+  progressDeadlineSeconds: 1800
+  selector:
+    matchLabels:
+      app: tableau-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tableau-server
+    spec: 
+      securityContext:
+        runAsUser: 999
+        fsGroup: 998
+        fsGroupChangePolicy: "OnRootMismatch"
+      terminationGracePeriodSeconds: 120
+      hostname: 
+      containers:
+      - name: tableau-server
+        image: 866480333934.dkr.ecr.us-east-1.amazonaws.com/tableau_server_dev:latest
+        env:
+        - name: LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tableau-server-secrets
+              key: LICENSE_KEY
+        - name: REQUESTED_LEASE_TIME
+          valueFrom:
+            secretKeyRef:
+              name: tableau-server-secrets
+              key: REQUESTED_LEASE_TIME
+        - name: ALWAYS_WRITE_BOOTSTRAP_FILE
+          valueFrom:
+            secretKeyRef:
+              name: tableau-server-secrets
+              key: ALWAYS_WRITE_BOOTSTRAP_FILE
+        - name: TABLEAU_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: tableau-server-secrets
+              key: TABLEAU_USERNAME
+        - name: TABLEAU_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tableau-server-secrets
+              key: TABLEAU_PASSWORD
+        - name: TSM_REMOTE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tableau-server-secrets
+              key: TSM_REMOTE_PASSWORD
+        resources:
+          requests:
+            memory: 128Gi
+            cpu: 16
+          limits:
+            memory: 128Gi
+            cpu: 16
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: configmount
+          mountPath: /docker/config/config.json
+          subPath: config.json
+        - name: datamount
+          mountPath: /var/opt/tableau
+        imagePullPolicy: IfNotPresent
+      dnsPolicy: ClusterFirst
+      volumes:
+      - name: configmount
+        configMap:
+          name: configfile
+      - name: datamount
+        persistentVolumeClaim:
+          claimName: datadir
